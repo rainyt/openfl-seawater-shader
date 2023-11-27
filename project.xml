@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project><define name="zybuild"/><define name="html5-platform"/>
+	
+	<meta title="NoiseBitmap" package="com.sample.noisebitmap" version="1.0.0" company="Company Name"/>
+	<app main="Main" path="Export" file="NoiseBitmap"/>
+	
+	<source path="Source"/>
+	
+	<haxelib name="openfl"/>
+
+	<haxelib name="openfl-glsl"/>
+	
+	<assets path="Assets" rename="assets"/>
+	
+</project>
