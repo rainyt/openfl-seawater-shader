@@ -5,6 +5,9 @@ import glsl.GLSL;
 import glsl.Sampler2D;
 import glsl.OpenFLShader;
 
+/**
+ * 海水着色器
+ */
 @:debug
 class WarterShader extends OpenFLShader {
 	/**
@@ -49,7 +52,7 @@ class WarterShader extends OpenFLShader {
 	@:glsl
 	public function mathAlphaTween():Float {
 		// 其余部分都应该是1
-		var f2:Float = gl_openfl_TextureCoordv.x / 0.2;
+		var f2:Float = gl_openfl_TextureCoordv.x / 0.15;
 		f2 = min(1, f2);
 		var v:Float = lerp(f2, 0.5, 1.);
 		return v;
@@ -77,19 +80,22 @@ class WarterShader extends OpenFLShader {
 		// 海水的UV像素比
 		var uv:Vec2 = 1. / gl_openfl_TextureSize;
 		// 噪声的时间戳
-		var noiseOffest:Float = time / 10.;
+		var noiseOffest:Float = time / 6.28;
 		// 海水的噪声图
 		var noise:Vec4 = texture2D(noiseBitmap, fract(gl_openfl_TextureCoordv + vec2(noiseOffest, 0)));
 		// 影子的噪声图
 		var shadowNoise:Vec4 = texture2D(noiseBitmap, fract(gl_openfl_TextureCoordv + vec2(3.14 / 10., 0)));
 		// 这是海水波浪映射效果
 		var offest:Float = noise.r * uv.x * 10.;
-		var waterBottomColor:Vec4 = texture2D(gl_openfl_Texture, gl_openfl_TextureCoordv + vec2(offest * 2, offest * 2));
+		// var waterBottomColor:Vec4 = texture2D(gl_bitmap, gl_openfl_TextureCoordv + vec2(offest * 2, offest * 2));
+		var waterBottomColor:Vec4 = texture2D(gl_openfl_Texture, gl_openfl_TextureCoordv);
+		// 测试法线
+		// waterBottomColor *= gl_openfl_TextureCoordv.y;
 		// var mTween:Float = mathTween();
 		var waterColor:Vec4 = vec4(1, 1, 1, 1) * 0.5;
 		// v2
 		// 这里海浪的平移速度要加速
-		var moveTime:Float = time * 1.3;
+		var moveTime:Float = time;
 		var waterOffest:Float = noise.r * 0.5;
 		var waterMove:Float = 5. + cos(moveTime) * 5.;
 		// 冲浪变粗处理
@@ -121,11 +127,15 @@ class WarterShader extends OpenFLShader {
 		var main_noise:Vec4 = texture2D(noiseBitmap, fract(gl_openfl_TextureCoordv + vec2(offest * 2, offest * 2)));
 		waterColor_main = waterColor_main * main_noise.r;
 		waterBottomColor.rgb = waterBottomColor.rgb + waterColor_main.rgb * mTweenCut;
-		this.gl_FragColor = waterBottomColor;
+
+		// 透明过渡
+		var c:Float = cut(gl_openfl_TextureCoordv.x, 0.9, 1);
+		var tweenAlpha:Float = (1 - c) + (c * (1 - gl_openfl_TextureCoordv.x) / 0.1);
+		this.gl_FragColor = waterBottomColor * tweenAlpha;
 	}
 
 	override function onFrame() {
 		super.onFrame();
-		this.u_time.value[0] += 1 / 60;
+		this.u_time.value[0] = (this.u_time.value[0] + 1 / 60) % (6.28);
 	}
 }
